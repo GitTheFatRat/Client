@@ -87,6 +87,10 @@ public class InputSimulator {
         User32.INSTANCE.SendInput(new WinDef.DWORD(1), new WinUser.INPUT[]{input}, input.size());
     }
 
+    // Dùng cho XPBottleSpammer: chỉ nhấn hoặc chỉ nhả chuột phải
+    public static void mouseDown() { sendMouseEvent(MOUSEEVENTF_RIGHTDOWN); }
+    public static void mouseUp()   { sendMouseEvent(MOUSEEVENTF_RIGHTUP);  }
+
     public static void rightClick() {
         sendMouseEvent(MOUSEEVENTF_RIGHTDOWN);
         sendMouseEvent(MOUSEEVENTF_RIGHTUP);

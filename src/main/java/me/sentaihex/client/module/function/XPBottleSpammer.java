@@ -4,17 +4,11 @@ import com.github.kwhat.jnativehook.GlobalScreen;
 import com.github.kwhat.jnativehook.mouse.NativeMouseEvent;
 import com.github.kwhat.jnativehook.mouse.NativeMouseListener;
 import me.sentaihex.client.module.ClientModule;
+import me.sentaihex.client.util.InputSimulator;
 
-import java.awt.*;
-import java.awt.event.InputEvent;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 public class XPBottleSpammer extends ClientModule implements NativeMouseListener {
-
-    private static final int THROW_INTERVAL_MS = 50;
 
     private final ScheduledExecutorService scheduler =
             Executors.newSingleThreadScheduledExecutor(r -> {
@@ -23,68 +17,55 @@ public class XPBottleSpammer extends ClientModule implements NativeMouseListener
                 return t;
             });
 
-    private ScheduledFuture<?> task = null;
-    private Robot robot;
+    private volatile boolean rightHeld = false;
+    private final int DELAY_MS = 200; // Tăng lên 200ms cho an toàn với thực thể XP
 
     public XPBottleSpammer() {
         super("XP Bottle Spam", "Function", -1);
-        try {
-            robot = new Robot();
-        } catch (AWTException e) {
-            System.err.println("[SentaiHex] XPBottleSpammer: Robot init failed - " + e.getMessage());
-        }
     }
 
     @Override
     public void onEnable() {
         GlobalScreen.addNativeMouseListener(this);
+        System.out.println("[SentaiHex] XPBottleSpammer enabled");
     }
 
     @Override
     public void onDisable() {
         GlobalScreen.removeNativeMouseListener(this);
-        stopSpam();
+        rightHeld = false;
+        System.out.println("[SentaiHex] XPBottleSpammer disabled");
     }
 
-    @Override
-    public void execute() {
-        // Không dùng triggerIfEnabled - module dùng mouse hook riêng
-    }
-
-    // ─── MOUSE HOOK ───────────────────────────────────────────────────────────
+    @Override public void execute() {}
 
     @Override
     public void nativeMousePressed(NativeMouseEvent e) {
-        if (e.getButton() == NativeMouseEvent.BUTTON2) {
-            startSpam();
+        // ĐỔI THÀNH BUTTON3 (Chuột phải tiêu chuẩn trong JNativeHook)
+        if (e.getButton() == NativeMouseEvent.BUTTON3) {
+            if (!rightHeld) {
+                rightHeld = true;
+                startSpamLoop(); // Chạy vòng lặp đệ quy an toàn hơn FixedRate
+            }
         }
     }
 
     @Override
     public void nativeMouseReleased(NativeMouseEvent e) {
-        if (e.getButton() == NativeMouseEvent.BUTTON2) {
-            stopSpam();
+        if (e.getButton() == NativeMouseEvent.BUTTON3) {
+            rightHeld = false;
         }
     }
 
     @Override public void nativeMouseClicked(NativeMouseEvent e) {}
 
-    // ─── SPAM ─────────────────────────────────────────────────────────────────
+    private void startSpamLoop() {
+        if (!rightHeld) return;
 
-    private void startSpam() {
-        if (robot == null || (task != null && !task.isDone())) return;
-        task = scheduler.scheduleAtFixedRate(() -> {
-            robot.mouseRelease(InputEvent.BUTTON3_DOWN_MASK);
-            robot.delay(10);
-            robot.mousePress(InputEvent.BUTTON3_DOWN_MASK);
-        }, 0, THROW_INTERVAL_MS, TimeUnit.MILLISECONDS);
-    }
+        // Giả lập click chuột phải
+        InputSimulator.rightClick();
 
-    private void stopSpam() {
-        if (task != null) {
-            task.cancel(false);
-            task = null;
-            if (robot != null) robot.mouseRelease(InputEvent.BUTTON3_DOWN_MASK);
-        }
+        // Lên lịch cho cú click tiếp theo (Tạo khoảng trống cho CPU "thở")
+        scheduler.schedule(this::startSpamLoop, DELAY_MS, TimeUnit.MILLISECONDS);
     }
 }

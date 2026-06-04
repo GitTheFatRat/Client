@@ -14,18 +14,15 @@ public class ConfigManager {
     private static final String CONFIG_FILE = CONFIG_DIR + "config.json";
     private final Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
-    // [FIX #4] Danh sách tên getter/setter của các slot key cần lưu — thêm vào đây nếu có macro mới
     private static final String[] SLOT_GETTERS = {
-        "getSlotAnchor", "getSlotGlowstone", "getSlotTotem",  // AnchorMacro
-        "getSlotRail",   "getSlotCart",      "getSlotCrossbow", // TNTCartMacro
-        "getSlotPearl",  "getSlotWindCharge",                   // MaceTech1
-        "getSlotAxe",    "getSlotMace"                          // StunSlam
+            "getSlotAnchor", "getSlotGlowstone", "getSlotTotem",
+            "getSlotRail",   "getSlotCart",      "getSlotCrossbow",
+            "getSlotPearl",  "getSlotWindCharge"
     };
     private static final String[] SLOT_SETTERS = {
-        "setSlotAnchor", "setSlotGlowstone", "setSlotTotem",
-        "setSlotRail",   "setSlotCart",      "setSlotCrossbow",
-        "setSlotPearl",  "setSlotWindCharge",
-        "setSlotAxe",    "setSlotMace"
+            "setSlotAnchor", "setSlotGlowstone", "setSlotTotem",
+            "setSlotRail",   "setSlotCart",      "setSlotCrossbow",
+            "setSlotPearl",  "setSlotWindCharge"
     };
 
     public void save() {
@@ -41,14 +38,11 @@ public class ConfigManager {
                 obj.addProperty("keybind",     m.getKeybind());
                 obj.addProperty("globalDelay", m.getGlobalDelay());
 
-                // Lưu delay1 / delay2 / delay3
                 invokeGetterInt(m, "getDelay1", obj, "delay1");
                 invokeGetterInt(m, "getDelay2", obj, "delay2");
                 invokeGetterInt(m, "getDelay3", obj, "delay3");
 
-                // [FIX #4] Lưu toàn bộ slot keys
                 for (String getter : SLOT_GETTERS) {
-                    // Tên JSON key = bỏ "get" ở đầu, chữ thường chữ cái đầu
                     String jsonKey = Character.toLowerCase(getter.charAt(3)) + getter.substring(4);
                     invokeGetterInt(m, getter, obj, jsonKey);
                 }
@@ -81,16 +75,17 @@ public class ConfigManager {
                 ClientModule m = SentaiHex.INSTANCE.moduleManager.getByName(name);
                 if (m == null) continue;
 
-                m.setEnabled(obj.get("enabled").getAsBoolean());
+                // Dùng toggle() thay vì setEnabled() để onEnable/onDisable được gọi đúng
+                boolean shouldEnable = obj.get("enabled").getAsBoolean();
+                if (shouldEnable != m.isEnabled()) m.toggle();
+
                 m.setKeybind(obj.get("keybind").getAsInt());
                 m.setGlobalDelay(obj.get("globalDelay").getAsInt());
 
-                // Load delay1 / delay2 / delay3
                 invokeSetterInt(m, "setDelay1", obj, "delay1");
                 invokeSetterInt(m, "setDelay2", obj, "delay2");
                 invokeSetterInt(m, "setDelay3", obj, "delay3");
 
-                // [FIX #4] Load toàn bộ slot keys
                 for (int i = 0; i < SLOT_SETTERS.length; i++) {
                     String setter  = SLOT_SETTERS[i];
                     String getter  = SLOT_GETTERS[i];
@@ -105,7 +100,6 @@ public class ConfigManager {
         }
     }
 
-    // --- Helper: gọi getter trả int rồi ghi vào JsonObject ---
     private void invokeGetterInt(ClientModule m, String methodName, JsonObject obj, String jsonKey) {
         try {
             Method method = m.getClass().getMethod(methodName);
@@ -113,7 +107,6 @@ public class ConfigManager {
         } catch (Exception ignored) {}
     }
 
-    // --- Helper: đọc int từ JsonObject rồi gọi setter ---
     private void invokeSetterInt(ClientModule m, String methodName, JsonObject obj, String jsonKey) {
         if (!obj.has(jsonKey)) return;
         try {
