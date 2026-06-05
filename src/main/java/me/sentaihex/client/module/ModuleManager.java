@@ -4,6 +4,7 @@ import com.github.kwhat.jnativehook.GlobalScreen;
 import com.github.kwhat.jnativehook.keyboard.NativeKeyEvent;
 import com.github.kwhat.jnativehook.keyboard.NativeKeyListener;
 import me.sentaihex.client.module.function.XPBottleSpammer;
+import me.sentaihex.client.module.function.TriggerBot; // 1. IMPORT MODULE TRIGGERBOT MỚI
 import me.sentaihex.client.module.macros.AnchorMacro;
 import me.sentaihex.client.module.macros.MaceTech1;
 import me.sentaihex.client.module.macros.FireBowTNTCartMacro;
@@ -22,12 +23,16 @@ public class ModuleManager implements NativeKeyListener {
     private static final long TOGGLE_DEBOUNCE_MS = 250;
 
     public ModuleManager() {
+        // --- Đăng ký các Macro ---
         register(new AnchorMacro());
         register(new TNTCartMacro());
         register(new FireBowTNTCartMacro());
         register(new FlintCrossbowTNTCartMacro());
         register(new MaceTech1());
+
+        // --- Đăng ký các Function ---
         register(new XPBottleSpammer());
+        register(new TriggerBot());// 2. ĐĂNG KÝ TRIGGER BOT VÀO HỆ THỐNG QUẢN LÝ
 
         GlobalScreen.addNativeKeyListener(this);
         System.out.println("[SentaiHex] ModuleManager loaded " + modules.size() + " modules");
@@ -45,7 +50,7 @@ public class ModuleManager implements NativeKeyListener {
                 long last = lastToggleTime.getOrDefault(m, 0L);
                 if (now - last < TOGGLE_DEBOUNCE_MS) continue;
                 lastToggleTime.put(m, now);
-                m.toggle();
+                m.toggle(); // Khi nhấn phím tắt, Trigger Bot (Function) sẽ được Bật/Tắt
             } else {
                 m.triggerIfEnabled(code);
             }
