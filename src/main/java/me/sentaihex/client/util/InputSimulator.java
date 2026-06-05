@@ -92,8 +92,42 @@ public class InputSimulator {
     public static void mouseUp()   { sendMouseEvent(MOUSEEVENTF_RIGHTUP);  }
 
     public static void rightClick() {
-        sendMouseEvent(MOUSEEVENTF_RIGHTDOWN);
-        sendMouseEvent(MOUSEEVENTF_RIGHTUP);
+        rightClickFast();
+    }
+
+    /** Release then re-press — one item use while physically holding RMB. Ends in DOWN state. */
+    public static void xpBottleUseTick() {
+        WinUser.INPUT[] inputs = (WinUser.INPUT[]) new WinUser.INPUT().toArray(2);
+
+        inputs[0].type = new WinDef.DWORD(WinUser.INPUT.INPUT_MOUSE);
+        inputs[0].input.setType("mi");
+        inputs[0].input.mi.dwFlags = new WinDef.DWORD(MOUSEEVENTF_RIGHTUP);
+
+        inputs[1].type = new WinDef.DWORD(WinUser.INPUT.INPUT_MOUSE);
+        inputs[1].input.setType("mi");
+        inputs[1].input.mi.dwFlags = new WinDef.DWORD(MOUSEEVENTF_RIGHTDOWN);
+
+        User32.INSTANCE.SendInput(new WinDef.DWORD(2), inputs, inputs[0].size());
+    }
+
+    /** Single SendInput batch — lower latency for high-CPS right-click spam. */
+    public static void rightClickFast() {
+        WinUser.INPUT[] inputs = (WinUser.INPUT[]) new WinUser.INPUT().toArray(2);
+
+        inputs[0].type = new WinDef.DWORD(WinUser.INPUT.INPUT_MOUSE);
+        inputs[0].input.setType("mi");
+        inputs[0].input.mi.dwFlags = new WinDef.DWORD(MOUSEEVENTF_RIGHTDOWN);
+
+        inputs[1].type = new WinDef.DWORD(WinUser.INPUT.INPUT_MOUSE);
+        inputs[1].input.setType("mi");
+        inputs[1].input.mi.dwFlags = new WinDef.DWORD(MOUSEEVENTF_RIGHTUP);
+
+        User32.INSTANCE.SendInput(new WinDef.DWORD(2), inputs, inputs[0].size());
+    }
+
+    /** Whether the physical right mouse button is currently held. */
+    public static boolean isRightMouseHeld() {
+        return (User32.INSTANCE.GetAsyncKeyState(0x02) & 0x8000) != 0;
     }
 
     public static void leftClick() {
