@@ -6,6 +6,8 @@ import com.github.kwhat.jnativehook.keyboard.NativeKeyListener;
 import me.sentaihex.client.module.function.XPBottleSpammer;
 import me.sentaihex.client.module.macros.AnchorMacro;
 import me.sentaihex.client.module.macros.MaceTech1;
+import me.sentaihex.client.module.macros.FireBowTNTCartMacro;
+import me.sentaihex.client.module.macros.FlintCrossbowTNTCartMacro;
 import me.sentaihex.client.module.macros.TNTCartMacro;
 
 import java.util.ArrayList;
@@ -22,6 +24,8 @@ public class ModuleManager implements NativeKeyListener {
     public ModuleManager() {
         register(new AnchorMacro());
         register(new TNTCartMacro());
+        register(new FireBowTNTCartMacro());
+        register(new FlintCrossbowTNTCartMacro());
         register(new MaceTech1());
         register(new XPBottleSpammer());
 

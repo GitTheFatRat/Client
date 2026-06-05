@@ -63,7 +63,86 @@ public class InputSimulator {
         User32.INSTANCE.SendInput(new WinDef.DWORD(4), inputs, inputs[0].size());
     }
 
-    // Các method cũ giữ lại để tương thích
+    /**
+     * Switch to slot, hold right mouse for chargeMs (bow draw), then release.
+     * Used for fire bow: need to charge before releasing the arrow.
+     */
+    public static void pressKeyThenChargeRelease(int winVK, int chargeMs) throws InterruptedException {
+        // Switch slot
+        WinUser.INPUT[] slotInputs = (WinUser.INPUT[]) new WinUser.INPUT().toArray(2);
+        slotInputs[0].type = new WinDef.DWORD(WinUser.INPUT.INPUT_KEYBOARD);
+        slotInputs[0].input.setType("ki");
+        slotInputs[0].input.ki.wVk = new WinDef.WORD(winVK);
+        slotInputs[0].input.ki.dwFlags = new WinDef.DWORD(0);
+        slotInputs[1].type = new WinDef.DWORD(WinUser.INPUT.INPUT_KEYBOARD);
+        slotInputs[1].input.setType("ki");
+        slotInputs[1].input.ki.wVk = new WinDef.WORD(winVK);
+        slotInputs[1].input.ki.dwFlags = new WinDef.DWORD(WinUser.KEYBDINPUT.KEYEVENTF_KEYUP);
+        User32.INSTANCE.SendInput(new WinDef.DWORD(2), slotInputs, slotInputs[0].size());
+
+        // Right mouse down (start charging bow)
+        sendMouseEvent(MOUSEEVENTF_RIGHTDOWN);
+        Thread.sleep(chargeMs);
+        // Right mouse up (release arrow)
+        sendMouseEvent(MOUSEEVENTF_RIGHTUP);
+    }
+
+    /**
+     * Places rail and cart at the same time by sending both slot-switch + right-click
+     * events in a single SendInput batch (8 inputs total).
+     * Windows processes them in order within the same tick, giving near-simultaneous placement.
+     */
+    public static void placeRailAndCartSimultaneous(int railVK, int cartVK) {
+        WinUser.INPUT[] inputs = (WinUser.INPUT[]) new WinUser.INPUT().toArray(8);
+
+        // [0] rail key down
+        inputs[0].type = new WinDef.DWORD(WinUser.INPUT.INPUT_KEYBOARD);
+        inputs[0].input.setType("ki");
+        inputs[0].input.ki.wVk   = new WinDef.WORD(railVK);
+        inputs[0].input.ki.dwFlags = new WinDef.DWORD(0);
+
+        // [1] rail key up
+        inputs[1].type = new WinDef.DWORD(WinUser.INPUT.INPUT_KEYBOARD);
+        inputs[1].input.setType("ki");
+        inputs[1].input.ki.wVk   = new WinDef.WORD(railVK);
+        inputs[1].input.ki.dwFlags = new WinDef.DWORD(WinUser.KEYBDINPUT.KEYEVENTF_KEYUP);
+
+        // [2] right-click down (place rail)
+        inputs[2].type = new WinDef.DWORD(WinUser.INPUT.INPUT_MOUSE);
+        inputs[2].input.setType("mi");
+        inputs[2].input.mi.dwFlags = new WinDef.DWORD(MOUSEEVENTF_RIGHTDOWN);
+
+        // [3] right-click up
+        inputs[3].type = new WinDef.DWORD(WinUser.INPUT.INPUT_MOUSE);
+        inputs[3].input.setType("mi");
+        inputs[3].input.mi.dwFlags = new WinDef.DWORD(MOUSEEVENTF_RIGHTUP);
+
+        // [4] cart key down
+        inputs[4].type = new WinDef.DWORD(WinUser.INPUT.INPUT_KEYBOARD);
+        inputs[4].input.setType("ki");
+        inputs[4].input.ki.wVk   = new WinDef.WORD(cartVK);
+        inputs[4].input.ki.dwFlags = new WinDef.DWORD(0);
+
+        // [5] cart key up
+        inputs[5].type = new WinDef.DWORD(WinUser.INPUT.INPUT_KEYBOARD);
+        inputs[5].input.setType("ki");
+        inputs[5].input.ki.wVk   = new WinDef.WORD(cartVK);
+        inputs[5].input.ki.dwFlags = new WinDef.DWORD(WinUser.KEYBDINPUT.KEYEVENTF_KEYUP);
+
+        // [6] right-click down (place cart)
+        inputs[6].type = new WinDef.DWORD(WinUser.INPUT.INPUT_MOUSE);
+        inputs[6].input.setType("mi");
+        inputs[6].input.mi.dwFlags = new WinDef.DWORD(MOUSEEVENTF_RIGHTDOWN);
+
+        // [7] right-click up
+        inputs[7].type = new WinDef.DWORD(WinUser.INPUT.INPUT_MOUSE);
+        inputs[7].input.setType("mi");
+        inputs[7].input.mi.dwFlags = new WinDef.DWORD(MOUSEEVENTF_RIGHTUP);
+
+        User32.INSTANCE.SendInput(new WinDef.DWORD(8), inputs, inputs[0].size());
+    }
+
+    // Legacy methods kept for compatibility
     public static void pressKey(int winVK) {
         keyDown(winVK);
         keyUp(winVK);

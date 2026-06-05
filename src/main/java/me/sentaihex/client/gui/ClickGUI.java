@@ -256,11 +256,13 @@ public class ClickGUI extends JFrame implements NativeKeyListener {
     private JPanel buildMacroCard(ClientModule m) {
         JPanel card = buildCard(true);
         String displayName = switch (m.getName()) {
-            case "Anchor Bomb"              -> "Respawn Anchor";
-            case "TNT Cart"                 -> "TNT Cart";
-            case "Mace Tech 1 (Pearl+Wind)" -> "Pearl + Wind Charge";
-            case "Mace Tech 2 (Stun Slam)"  -> "Stun Slam";
-            default                         -> m.getName();
+            case "Anchor Bomb"                    -> "Respawn Anchor";
+            case "TNT Cart"                       -> "TNT Cart";
+            case "TNT Cart (Fire Bow)"            -> "TNT Cart (Fire Bow)";
+            case "TNT Cart (Flint + Crossbow)"    -> "TNT Cart (Flint + Crossbow)";
+            case "Mace Tech 1 (Pearl+Wind)"       -> "Pearl + Wind Charge";
+            case "Mace Tech 2 (Stun Slam)"        -> "Stun Slam";
+            default                               -> m.getName();
         };
         card.add(buildTopRow(m, displayName, true), BorderLayout.NORTH);
         JPanel body = new JPanel();
@@ -270,6 +272,14 @@ public class ClickGUI extends JFrame implements NativeKeyListener {
         buildSlots(m, body);
         body.add(Box.createVerticalStrut(6));
         body.add(buildDelayRow(m, false));
+        if (m instanceof FlintCrossbowTNTCartMacro fc) {
+            body.add(Box.createVerticalStrut(6));
+            body.add(buildAimRow("Aim (flint)", fc.getAimFlint(),
+                    v -> { fc.setAimFlint(v); SentaiHex.INSTANCE.configManager.save(); }));
+            body.add(Box.createVerticalStrut(6));
+            body.add(buildAimRow("Aim (bow)", fc.getAimBow(),
+                    v -> { fc.setAimBow(v); SentaiHex.INSTANCE.configManager.save(); }));
+        }
         body.add(Box.createVerticalStrut(6));
         body.add(buildBindRow(m, false));
         card.add(body, BorderLayout.CENTER);
@@ -355,6 +365,20 @@ public class ClickGUI extends JFrame implements NativeKeyListener {
             body.add(buildSlotRow(m, "slot2", "Cart"));
             body.add(Box.createVerticalStrut(4));
             body.add(buildSlotRow(m, "slot3", "Crossbow"));
+        } else if (m instanceof FireBowTNTCartMacro) {
+            body.add(buildSlotRow(m, "slot1", "Fire Bow"));
+            body.add(Box.createVerticalStrut(4));
+            body.add(buildSlotRow(m, "slot2", "Rail"));
+            body.add(Box.createVerticalStrut(4));
+            body.add(buildSlotRow(m, "slot3", "Cart"));
+        } else if (m instanceof FlintCrossbowTNTCartMacro) {
+            body.add(buildSlotRow(m, "slot1", "Rail"));
+            body.add(Box.createVerticalStrut(4));
+            body.add(buildSlotRow(m, "slot2", "Cart"));
+            body.add(Box.createVerticalStrut(4));
+            body.add(buildSlotRow(m, "slot3", "Flint & Steel"));
+            body.add(Box.createVerticalStrut(4));
+            body.add(buildSlotRow(m, "slot4", "Crossbow"));
         } else if (m instanceof MaceTech1) {
             body.add(buildSlotRow(m, "slot1", "Pearl"));
             body.add(Box.createVerticalStrut(4));
@@ -452,6 +476,64 @@ public class ClickGUI extends JFrame implements NativeKeyListener {
         };
     }
 
+    private JPanel buildAimRow(String labelText, int initialMs, java.util.function.IntConsumer onApply) {
+        JPanel row = new JPanel(new BorderLayout(8, 0));
+        row.setOpaque(false);
+        row.setMaximumSize(new Dimension(Integer.MAX_VALUE, 28));
+        row.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        JLabel lbl = new JLabel(labelText);
+        lbl.setFont(new Font(FONT, Font.PLAIN, 12));
+        lbl.setForeground(TEXT_MUTED);
+        row.add(lbl, BorderLayout.WEST);
+
+        JPanel right = new JPanel(new FlowLayout(FlowLayout.RIGHT, 4, 0));
+        right.setOpaque(false);
+
+        JTextField field = new JTextField(String.valueOf(initialMs), 4) {
+            @Override protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(new Color(255, 255, 255, 15));
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 8, 8);
+                g2.setColor(GLASS_BORDER);
+                g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 8, 8);
+                g2.dispose();
+                super.paintComponent(g);
+            }
+        };
+        field.setOpaque(false);
+        field.setFont(new Font(FONT, Font.BOLD, 12));
+        field.setForeground(ACCENT);
+        field.setCaretColor(ACCENT);
+        field.setBorder(new EmptyBorder(2, 6, 2, 6));
+        field.setHorizontalAlignment(JTextField.CENTER);
+        field.setPreferredSize(new Dimension(52, 24));
+
+        Runnable apply = () -> {
+            try {
+                int val = Math.max(0, Integer.parseInt(field.getText().trim()));
+                onApply.accept(val);
+                field.setText(String.valueOf(val));
+                field.setForeground(ACCENT);
+            } catch (NumberFormatException ex) {
+                field.setForeground(DANGER);
+            }
+        };
+        field.addActionListener(e -> apply.run());
+        field.addFocusListener(new FocusAdapter() {
+            @Override public void focusLost(FocusEvent e) { apply.run(); }
+        });
+
+        JLabel ms = new JLabel("ms");
+        ms.setFont(new Font(FONT, Font.PLAIN, 11));
+        ms.setForeground(TEXT_MUTED);
+        right.add(field);
+        right.add(ms);
+        row.add(right, BorderLayout.EAST);
+        return row;
+    }
+
     // ─── BIND ROW ─────────────────────────────────────────────────────────────
     private JPanel buildBindRow(ClientModule m, boolean isFn) {
         JPanel row = new JPanel(new BorderLayout(8, 0));
@@ -517,6 +599,19 @@ public class ClickGUI extends JFrame implements NativeKeyListener {
                 case "slot3" -> m.getSlotCrossbow();
                 default -> -1;
             };
+            case FireBowTNTCartMacro m -> switch (slot) {
+                case "slot1" -> m.getSlotFireBow();
+                case "slot2" -> m.getSlotRail();
+                case "slot3" -> m.getSlotCart();
+                default -> -1;
+            };
+            case FlintCrossbowTNTCartMacro m -> switch (slot) {
+                case "slot1" -> m.getSlotRail();
+                case "slot2" -> m.getSlotCart();
+                case "slot3" -> m.getSlotFlint();
+                case "slot4" -> m.getSlotCrossbow();
+                default -> -1;
+            };
             case MaceTech1 m -> switch (slot) {
                 case "slot1" -> m.getSlotPearl();
                 case "slot2" -> m.getSlotWindCharge();
@@ -530,24 +625,36 @@ public class ClickGUI extends JFrame implements NativeKeyListener {
         switch (slot) {
             case "slot1" -> {
                 switch (module) {
-                    case AnchorMacro  m -> m.setSlotAnchor(code);
-                    case TNTCartMacro m -> m.setSlotRail(code);
-                    case MaceTech1    m -> m.setSlotPearl(code);
+                    case AnchorMacro                m -> m.setSlotAnchor(code);
+                    case TNTCartMacro               m -> m.setSlotRail(code);
+                    case FireBowTNTCartMacro        m -> m.setSlotFireBow(code);
+                    case FlintCrossbowTNTCartMacro  m -> m.setSlotRail(code);
+                    case MaceTech1                  m -> m.setSlotPearl(code);
                     default -> {}
                 }
             }
             case "slot2" -> {
                 switch (module) {
-                    case AnchorMacro  m -> m.setSlotGlowstone(code);
-                    case TNTCartMacro m -> m.setSlotCart(code);
-                    case MaceTech1    m -> m.setSlotWindCharge(code);
+                    case AnchorMacro                m -> m.setSlotGlowstone(code);
+                    case TNTCartMacro               m -> m.setSlotCart(code);
+                    case FireBowTNTCartMacro        m -> m.setSlotRail(code);
+                    case FlintCrossbowTNTCartMacro  m -> m.setSlotCart(code);
+                    case MaceTech1                  m -> m.setSlotWindCharge(code);
                     default -> {}
                 }
             }
             case "slot3" -> {
                 switch (module) {
-                    case AnchorMacro  m -> m.setSlotTotem(code);
-                    case TNTCartMacro m -> m.setSlotCrossbow(code);
+                    case AnchorMacro                m -> m.setSlotTotem(code);
+                    case TNTCartMacro               m -> m.setSlotCrossbow(code);
+                    case FireBowTNTCartMacro        m -> m.setSlotCart(code);
+                    case FlintCrossbowTNTCartMacro  m -> m.setSlotFlint(code);
+                    default -> {}
+                }
+            }
+            case "slot4" -> {
+                switch (module) {
+                    case FlintCrossbowTNTCartMacro  m -> m.setSlotCrossbow(code);
                     default -> {}
                 }
             }
