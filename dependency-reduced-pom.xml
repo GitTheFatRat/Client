@@ -7,6 +7,15 @@
   <build>
     <plugins>
       <plugin>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.11.0</version>
+        <configuration>
+          <compilerArgs>
+            <arg>--add-exports=java.instrument/sun.instrument=ALL-UNNAMED</arg>
+          </compilerArgs>
+        </configuration>
+      </plugin>
+      <plugin>
         <artifactId>maven-shade-plugin</artifactId>
         <version>3.5.0</version>
         <executions>
@@ -21,9 +30,11 @@
                 <transformer>
                   <mainClass>me.sentaihex.launcher.Launcher</mainClass>
                   <manifestEntries>
+                    <Premain-Class>me.sentaihex.agent.Agent</Premain-Class>
                     <Agent-Class>me.sentaihex.agent.Agent</Agent-Class>
                     <Can-Redefine-Classes>true</Can-Redefine-Classes>
                     <Can-Retransform-Classes>true</Can-Retransform-Classes>
+                    <Can-Set-Native-Method-Prefix>true</Can-Set-Native-Method-Prefix>
                   </manifestEntries>
                 </transformer>
               </transformers>

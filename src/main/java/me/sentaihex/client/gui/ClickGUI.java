@@ -285,11 +285,12 @@ public class ClickGUI extends JFrame implements NativeKeyListener {
         JPanel card = buildCard(true);
         String displayName = switch (m.getName()) {
             case "Anchor Bomb"                    -> "Respawn Anchor";
-            case "TNT Cart"                       -> "TNT Cart";
-            case "TNT Cart (Fire Bow)"            -> "TNT Cart (Fire Bow)";
+            case "TNT Cart"                       -> "TNT Cart Crossbow";
+            case "TNT Cart (Fire Bow)"            -> "TNT Cart Bow";
             case "TNT Cart (Flint + Crossbow)"    -> "Flint + Crossbow";
             case "Mace Tech 1 (Pearl+Wind)"       -> "Pearl + Wind";
             case "Mace Tech 2 (Stun Slam)"        -> "Stun Slam";
+            case "Spear Swap"                     -> "Spear Swap";
             default                               -> m.getName();
         };
         card.add(buildTopRow(m, displayName, true), BorderLayout.NORTH);
@@ -421,6 +422,10 @@ public class ClickGUI extends JFrame implements NativeKeyListener {
             body.add(buildSlotRow(m, "slot1", "Pearl"));
             body.add(Box.createVerticalStrut(4));
             body.add(buildSlotRow(m, "slot2", "Wind Charge"));
+        } else if (m instanceof SpearSwapMacro) {
+            body.add(buildSlotRow(m, "slot1", "Prev Slot"));
+            body.add(Box.createVerticalStrut(4));
+            body.add(buildSlotRow(m, "slot2", "Spear"));
         }
     }
 
@@ -648,6 +653,11 @@ public class ClickGUI extends JFrame implements NativeKeyListener {
                 case "slot2" -> m.getSlotWindCharge();
                 default -> -1;
             };
+            case SpearSwapMacro m -> switch (slot) {
+                case "slot1" -> m.getSlotPrev();
+                case "slot2" -> m.getSlotSpear();
+                default -> -1;
+            };
             default -> -1;
         };
     }
@@ -665,6 +675,7 @@ public class ClickGUI extends JFrame implements NativeKeyListener {
                     case FireBowTNTCartMacro       m -> m.setSlotFireBow(code);
                     case FlintCrossbowTNTCartMacro m -> m.setSlotRail(code);
                     case MaceTech1                 m -> m.setSlotPearl(code);
+                    case SpearSwapMacro            m -> m.setSlotPrev(code);
                     default -> {}
                 }
             }
@@ -675,6 +686,7 @@ public class ClickGUI extends JFrame implements NativeKeyListener {
                     case FireBowTNTCartMacro       m -> m.setSlotRail(code);
                     case FlintCrossbowTNTCartMacro m -> m.setSlotCart(code);
                     case MaceTech1                 m -> m.setSlotWindCharge(code);
+                    case SpearSwapMacro            m -> m.setSlotSpear(code);
                     default -> {}
                 }
             }

@@ -10,6 +10,7 @@ import me.sentaihex.client.module.macros.MaceTech1;
 import me.sentaihex.client.module.macros.FireBowTNTCartMacro;
 import me.sentaihex.client.module.macros.FlintCrossbowTNTCartMacro;
 import me.sentaihex.client.module.macros.TNTCartMacro;
+import me.sentaihex.client.module.macros.SpearSwapMacro;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,6 +30,7 @@ public class ModuleManager implements NativeKeyListener {
         register(new FireBowTNTCartMacro());
         register(new FlintCrossbowTNTCartMacro());
         register(new MaceTech1());
+        register(new SpearSwapMacro());
 
         // --- Đăng ký các Function ---
         register(new XPBottleSpammer());
