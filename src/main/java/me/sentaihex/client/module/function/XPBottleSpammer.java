@@ -8,6 +8,7 @@ import me.sentaihex.client.util.MinecraftAccess;
 import me.sentaihex.client.util.InputSimulator;
 
 import java.util.concurrent.*;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class XPBottleSpammer extends ClientModule implements NativeMouseListener {
 
@@ -32,6 +33,9 @@ public class XPBottleSpammer extends ClientModule implements NativeMouseListener
     private volatile boolean userHolding = false;
     private volatile long suppressReleaseUntil = 0;
     private volatile ScheduledFuture<?> spamTask;
+
+    // ThreadLocalRandom for better performance and less contention
+    private final ThreadLocalRandom random = ThreadLocalRandom.current();
 
     public XPBottleSpammer() {
         super("XP Bottle Spam", "Function", -1);
@@ -99,7 +103,8 @@ public class XPBottleSpammer extends ClientModule implements NativeMouseListener
         InputSimulator.xpBottleUseTick();
         suppressReleaseUntil = System.currentTimeMillis() + SUPPRESS_RELEASE_MS;
 
-        int interval = CPS_MIN_MS + (int)(Math.random() * (CPS_MAX_MS - CPS_MIN_MS + 1));
+        // Use ThreadLocalRandom instead of Math.random() for better performance
+        int interval = CPS_MIN_MS + random.nextInt(CPS_MAX_MS - CPS_MIN_MS + 1);
         spamTask = scheduler.schedule(this::spamTick, interval, TimeUnit.MILLISECONDS);
     }
 
@@ -113,7 +118,6 @@ public class XPBottleSpammer extends ClientModule implements NativeMouseListener
 
     /** Check via MinecraftAccess (same JVM as Minecraft) instead of file-based agent. */
     private static boolean canSpamHeldItem() {
-        // If MinecraftAccess can't init yet (Minecraft not running), allow spam anyway
         if (!MinecraftAccess.initMc()) return true;
         return MinecraftAccess.isHoldingExperienceBottle();
     }

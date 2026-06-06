@@ -13,13 +13,10 @@ public abstract class ClientModule {
     private boolean enabled = false;
     private int keybind = -1;
 
-    private int globalDelay = 100;        // Delay mặc định
+    private int globalDelay = 100;
     private int[] stepDelays;
 
-    // [FIX #2] Dùng AtomicBoolean thay volatile boolean để check+set atomic,
-    // tránh race condition khi 2 key event đến gần nhau cùng lúc
     private final AtomicBoolean running = new AtomicBoolean(false);
-
     private final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
 
     public ClientModule(String name, String category, int defaultKey) {
@@ -44,10 +41,6 @@ public abstract class ClientModule {
     public abstract void onDisable();
     public abstract void execute() throws InterruptedException;
 
-    // [FIX #1] toggle() cũ: setEnabled() fire PropertyChangeListener trước,
-    // sau đó mới gọi onEnable/onDisable → GUI nhận sự kiện khi module chưa
-    // thực sự hoàn tất khởi động.
-    // Fix: gọi onEnable/onDisable TRƯỚC, sau đó mới setEnabled() để notify GUI.
     public void toggle() {
         if (!enabled) {
             onEnable();
@@ -62,8 +55,6 @@ public abstract class ClientModule {
         if (!enabled) return;
         if (keybind == -1 || keyCode != keybind) return;
 
-        // [FIX #2] compareAndSet: chỉ set true nếu hiện đang false → atomic,
-        // không thể có 2 thread cùng pass qua đây một lúc
         if (!running.compareAndSet(false, true)) return;
 
         Thread t = new Thread(() -> {
@@ -72,12 +63,12 @@ public abstract class ClientModule {
             } catch (InterruptedException ignored) {
                 Thread.currentThread().interrupt();
             } catch (Exception e) {
-                System.err.println("[SentaiHex] Lỗi execute " + name + ": " + e.getMessage());
+                System.err.println("[SentaiHex] Error in " + name + ": " + e.getMessage());
             } finally {
                 running.set(false);
             }
         }, name + "-Thread");
-        t.setDaemon(true); // [FIX #3] daemon thread: không giữ JVM sống khi MC thoát
+        t.setDaemon(true);
         t.start();
     }
 
@@ -105,12 +96,12 @@ public abstract class ClientModule {
     }
 
     public void setGlobalDelay(int delay) {
-        this.globalDelay = Math.max(1, delay); // Không cho delay < 1ms
+        this.globalDelay = Math.max(1, delay);
     }
 
     public void setDelay(int ms) {
         setGlobalDelay(ms);
-        System.out.println("[SentaiHex] " + name + " delay đã được đặt thành " + ms + "ms");
+        System.out.println("[SentaiHex] " + name + " delay set to " + ms + "ms");
     }
 
     public int[] getStepDelays() {
@@ -125,6 +116,34 @@ public abstract class ClientModule {
         if (stepDelays != null && step < stepDelays.length)
             return stepDelays[step];
         return globalDelay;
+    }
+
+    // ====================== MULTI-DELAY GETTERS/SETTERS ======================
+    // These are overridden by macros that have multiple delay values
+    // Default implementation returns global delay for all
+
+    public int getDelay1() {
+        return globalDelay;
+    }
+
+    public int getDelay2() {
+        return globalDelay;
+    }
+
+    public int getDelay3() {
+        return globalDelay;
+    }
+
+    public void setDelay1(int ms) {
+        setGlobalDelay(ms);
+    }
+
+    public void setDelay2(int ms) {
+        setGlobalDelay(ms);
+    }
+
+    public void setDelay3(int ms) {
+        setGlobalDelay(ms);
     }
 
     public String getKeybindName() {

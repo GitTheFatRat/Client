@@ -4,7 +4,7 @@ import com.github.kwhat.jnativehook.GlobalScreen;
 import com.github.kwhat.jnativehook.keyboard.NativeKeyEvent;
 import com.github.kwhat.jnativehook.keyboard.NativeKeyListener;
 import me.sentaihex.client.module.function.XPBottleSpammer;
-import me.sentaihex.client.module.function.TriggerBot; // 1. IMPORT MODULE TRIGGERBOT MỚI
+import me.sentaihex.client.module.function.TriggerBot;
 import me.sentaihex.client.module.macros.AnchorMacro;
 import me.sentaihex.client.module.macros.MaceTech1;
 import me.sentaihex.client.module.macros.FireBowTNTCartMacro;
@@ -24,7 +24,7 @@ public class ModuleManager implements NativeKeyListener {
     private static final long TOGGLE_DEBOUNCE_MS = 250;
 
     public ModuleManager() {
-        // --- Đăng ký các Macro ---
+        // Register macros
         register(new AnchorMacro());
         register(new TNTCartMacro());
         register(new FireBowTNTCartMacro());
@@ -32,15 +32,17 @@ public class ModuleManager implements NativeKeyListener {
         register(new MaceTech1());
         register(new SpearSwapMacro());
 
-        // --- Đăng ký các Function ---
+        // Register functions
         register(new XPBottleSpammer());
-        register(new TriggerBot());// 2. ĐĂNG KÝ TRIGGER BOT VÀO HỆ THỐNG QUẢN LÝ
+        register(new TriggerBot());
 
         GlobalScreen.addNativeKeyListener(this);
         System.out.println("[SentaiHex] ModuleManager loaded " + modules.size() + " modules");
     }
 
-    private void register(ClientModule module) { modules.add(module); }
+    private void register(ClientModule module) {
+        modules.add(module);
+    }
 
     @Override
     public void nativeKeyPressed(NativeKeyEvent e) {
@@ -52,7 +54,7 @@ public class ModuleManager implements NativeKeyListener {
                 long last = lastToggleTime.getOrDefault(m, 0L);
                 if (now - last < TOGGLE_DEBOUNCE_MS) continue;
                 lastToggleTime.put(m, now);
-                m.toggle(); // Khi nhấn phím tắt, Trigger Bot (Function) sẽ được Bật/Tắt
+                m.toggle();
             } else {
                 m.triggerIfEnabled(code);
             }
@@ -62,7 +64,9 @@ public class ModuleManager implements NativeKeyListener {
     @Override public void nativeKeyReleased(NativeKeyEvent e) {}
     @Override public void nativeKeyTyped(NativeKeyEvent e) {}
 
-    public List<ClientModule> getModules() { return modules; }
+    public List<ClientModule> getModules() {
+        return modules;
+    }
 
     public List<ClientModule> getByCategory(String category) {
         List<ClientModule> result = new ArrayList<>();

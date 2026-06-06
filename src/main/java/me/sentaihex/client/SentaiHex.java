@@ -5,6 +5,7 @@ import com.github.kwhat.jnativehook.NativeHookException;
 import me.sentaihex.client.config.ConfigManager;
 import me.sentaihex.client.gui.ClickGUI;
 import me.sentaihex.client.module.ModuleManager;
+import me.sentaihex.client.module.ClientModule;
 
 import javax.swing.*;
 import java.util.logging.Level;
@@ -30,7 +31,7 @@ public class SentaiHex {
         try {
             GlobalScreen.registerNativeHook();
         } catch (NativeHookException e) {
-            System.err.println("[SentaiHex] Lỗi hook: " + e.getMessage());
+            System.err.println("[SentaiHex] Hook error: " + e.getMessage());
             return;
         }
 
@@ -38,16 +39,39 @@ public class SentaiHex {
         moduleManager = new ModuleManager();
         configManager.load();
 
-        // Khởi động GUI trên EDT
+        // Add shutdown hook to save config and clean up
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            System.out.println("[SentaiHex] Shutting down...");
+            if (configManager != null) {
+                configManager.save();
+            }
+            if (moduleManager != null) {
+                for (ClientModule m : moduleManager.getModules()) {
+                    if (m.isEnabled()) {
+                        try {
+                            m.onDisable();
+                        } catch (Exception ignored) {}
+                    }
+                }
+            }
+            try {
+                GlobalScreen.unregisterNativeHook();
+            } catch (NativeHookException ignored) {}
+            System.out.println("[SentaiHex] Shutdown complete.");
+        }, "SentaiHex-Shutdown"));
+
+        // Start GUI on EDT
         SwingUtilities.invokeLater(() -> {
             gui = new ClickGUI();
-            System.out.println("[SentaiHex] Ready! Nhấn INSERT để mở GUI");
+            System.out.println("[SentaiHex] Ready! Press INSERT to open GUI");
         });
     }
 
     public void stop() {
         try {
-            configManager.save();
+            if (configManager != null) {
+                configManager.save();
+            }
             GlobalScreen.unregisterNativeHook();
         } catch (NativeHookException e) {
             e.printStackTrace();

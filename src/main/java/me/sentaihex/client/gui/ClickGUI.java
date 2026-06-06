@@ -15,9 +15,6 @@ import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.RoundRectangle2D;
-import java.awt.GridBagLayout;
-import java.awt.GridBagConstraints;
-import java.awt.Insets;
 
 public class ClickGUI extends JFrame implements NativeKeyListener {
 
@@ -38,7 +35,7 @@ public class ClickGUI extends JFrame implements NativeKeyListener {
 
     private static final int    CARD_R  = 12;
     private static final int    WIN_R   = 16;
-    private static final String FONT    = "Segoe UI"; // NOSONAR
+    private static final String FONT    = "Segoe UI";
 
     // --- STATE ---
     private ClientModule  listeningModule  = null;
@@ -46,6 +43,7 @@ public class ClickGUI extends JFrame implements NativeKeyListener {
     private JButton       listeningBtn     = null;
     private Point         dragPoint        = null;
     private volatile long guiOpenedAt      = 0;
+    private long          lastToggleTime   = 0;  // FIX: added missing variable
 
     // GUI keybind (default INSERT)
     private int     guiKeybind       = NativeKeyEvent.VC_INSERT;
@@ -101,7 +99,6 @@ public class ClickGUI extends JFrame implements NativeKeyListener {
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 g2.setColor(new Color(11, 14, 24));
                 g2.fillRoundRect(0, 0, getWidth(), getHeight() + WIN_R, WIN_R * 2, WIN_R * 2);
-                // bottom accent line
                 GradientPaint gp = new GradientPaint(0, 0, new Color(80, 140, 255, 140), getWidth(), 0, new Color(255, 120, 60, 50));
                 g2.setPaint(gp);
                 g2.fillRect(0, getHeight() - 2, getWidth(), 2);
@@ -268,7 +265,6 @@ public class ClickGUI extends JFrame implements NativeKeyListener {
                         ? new Color(accent.getRed(), accent.getGreen(), accent.getBlue(), 55)
                         : BORDER_DIM);
                 g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, CARD_R, CARD_R);
-                // left accent bar
                 g2.setColor(new Color(accent.getRed(), accent.getGreen(), accent.getBlue(), hovered ? 210 : 130));
                 g2.fillRoundRect(0, 10, 3, getHeight() - 20, 3, 3);
                 g2.dispose();
@@ -581,44 +577,66 @@ public class ClickGUI extends JFrame implements NativeKeyListener {
         if (module instanceof TriggerBot && "slot1".equals(slot))
             return ((TriggerBot) module).getWeaponSlot();
 
-        return switch (module) {
-            case AnchorMacro m -> switch (slot) {
-                case "slot1" -> m.getSlotAnchor();
-                case "slot2" -> m.getSlotGlowstone();
-                case "slot3" -> m.getSlotTotem();
-                default -> -1;
-            };
-            case TNTCartMacro m -> switch (slot) {
-                case "slot1" -> m.getSlotRail();
-                case "slot2" -> m.getSlotCart();
-                case "slot3" -> m.getSlotCrossbow();
-                default -> -1;
-            };
-            case FireBowTNTCartMacro m -> switch (slot) {
-                case "slot1" -> m.getSlotFireBow();
-                case "slot2" -> m.getSlotRail();
-                case "slot3" -> m.getSlotCart();
-                default -> -1;
-            };
-            case FlintCrossbowTNTCartMacro m -> switch (slot) {
-                case "slot1" -> m.getSlotRail();
-                case "slot2" -> m.getSlotCart();
-                case "slot3" -> m.getSlotFlint();
-                case "slot4" -> m.getSlotCrossbow();
-                default -> -1;
-            };
-            case MaceTech1 m -> switch (slot) {
-                case "slot1" -> m.getSlotPearl();
-                case "slot2" -> m.getSlotWindCharge();
-                default -> -1;
-            };
-            case SpearSwapMacro m -> switch (slot) {
-                case "slot1" -> m.getSlotPrev();
-                case "slot2" -> m.getSlotSpear();
-                default -> -1;
-            };
-            default -> -1;
-        };
+        if (module instanceof AnchorMacro) {
+            AnchorMacro m = (AnchorMacro) module;
+            switch (slot) {
+                case "slot1": return m.getSlotAnchor();
+                case "slot2": return m.getSlotGlowstone();
+                case "slot3": return m.getSlotTotem();
+                default: return -1;
+            }
+        }
+
+        if (module instanceof TNTCartMacro) {
+            TNTCartMacro m = (TNTCartMacro) module;
+            switch (slot) {
+                case "slot1": return m.getSlotRail();
+                case "slot2": return m.getSlotCart();
+                case "slot3": return m.getSlotCrossbow();
+                default: return -1;
+            }
+        }
+
+        if (module instanceof FireBowTNTCartMacro) {
+            FireBowTNTCartMacro m = (FireBowTNTCartMacro) module;
+            switch (slot) {
+                case "slot1": return m.getSlotFireBow();
+                case "slot2": return m.getSlotRail();
+                case "slot3": return m.getSlotCart();
+                default: return -1;
+            }
+        }
+
+        if (module instanceof FlintCrossbowTNTCartMacro) {
+            FlintCrossbowTNTCartMacro m = (FlintCrossbowTNTCartMacro) module;
+            switch (slot) {
+                case "slot1": return m.getSlotRail();
+                case "slot2": return m.getSlotCart();
+                case "slot3": return m.getSlotFlint();
+                case "slot4": return m.getSlotCrossbow();
+                default: return -1;
+            }
+        }
+
+        if (module instanceof MaceTech1) {
+            MaceTech1 m = (MaceTech1) module;
+            switch (slot) {
+                case "slot1": return m.getSlotPearl();
+                case "slot2": return m.getSlotWindCharge();
+                default: return -1;
+            }
+        }
+
+        if (module instanceof SpearSwapMacro) {
+            SpearSwapMacro m = (SpearSwapMacro) module;
+            switch (slot) {
+                case "slot1": return m.getSlotPrev();
+                case "slot2": return m.getSlotSpear();
+                default: return -1;
+            }
+        }
+
+        return -1;
     }
 
     private void setSlotKey(ClientModule module, String slot, int code) {
@@ -626,43 +644,62 @@ public class ClickGUI extends JFrame implements NativeKeyListener {
             ((TriggerBot) module).setWeaponSlot(code);
             return;
         }
-        switch (slot) {
-            case "slot1" -> {
-                switch (module) {
-                    case AnchorMacro               m -> m.setSlotAnchor(code);
-                    case TNTCartMacro              m -> m.setSlotRail(code);
-                    case FireBowTNTCartMacro       m -> m.setSlotFireBow(code);
-                    case FlintCrossbowTNTCartMacro m -> m.setSlotRail(code);
-                    case MaceTech1                 m -> m.setSlotPearl(code);
-                    case SpearSwapMacro            m -> m.setSlotPrev(code);
-                    default -> {}
-                }
+
+        if (module instanceof AnchorMacro) {
+            AnchorMacro m = (AnchorMacro) module;
+            switch (slot) {
+                case "slot1": m.setSlotAnchor(code); break;
+                case "slot2": m.setSlotGlowstone(code); break;
+                case "slot3": m.setSlotTotem(code); break;
             }
-            case "slot2" -> {
-                switch (module) {
-                    case AnchorMacro               m -> m.setSlotGlowstone(code);
-                    case TNTCartMacro              m -> m.setSlotCart(code);
-                    case FireBowTNTCartMacro       m -> m.setSlotRail(code);
-                    case FlintCrossbowTNTCartMacro m -> m.setSlotCart(code);
-                    case MaceTech1                 m -> m.setSlotWindCharge(code);
-                    case SpearSwapMacro            m -> m.setSlotSpear(code);
-                    default -> {}
-                }
+            return;
+        }
+
+        if (module instanceof TNTCartMacro) {
+            TNTCartMacro m = (TNTCartMacro) module;
+            switch (slot) {
+                case "slot1": m.setSlotRail(code); break;
+                case "slot2": m.setSlotCart(code); break;
+                case "slot3": m.setSlotCrossbow(code); break;
             }
-            case "slot3" -> {
-                switch (module) {
-                    case AnchorMacro               m -> m.setSlotTotem(code);
-                    case TNTCartMacro              m -> m.setSlotCrossbow(code);
-                    case FireBowTNTCartMacro       m -> m.setSlotCart(code);
-                    case FlintCrossbowTNTCartMacro m -> m.setSlotFlint(code);
-                    default -> {}
-                }
+            return;
+        }
+
+        if (module instanceof FireBowTNTCartMacro) {
+            FireBowTNTCartMacro m = (FireBowTNTCartMacro) module;
+            switch (slot) {
+                case "slot1": m.setSlotFireBow(code); break;
+                case "slot2": m.setSlotRail(code); break;
+                case "slot3": m.setSlotCart(code); break;
             }
-            case "slot4" -> {
-                switch (module) {
-                    case FlintCrossbowTNTCartMacro m -> m.setSlotCrossbow(code);
-                    default -> {}
-                }
+            return;
+        }
+
+        if (module instanceof FlintCrossbowTNTCartMacro) {
+            FlintCrossbowTNTCartMacro m = (FlintCrossbowTNTCartMacro) module;
+            switch (slot) {
+                case "slot1": m.setSlotRail(code); break;
+                case "slot2": m.setSlotCart(code); break;
+                case "slot3": m.setSlotFlint(code); break;
+                case "slot4": m.setSlotCrossbow(code); break;
+            }
+            return;
+        }
+
+        if (module instanceof MaceTech1) {
+            MaceTech1 m = (MaceTech1) module;
+            switch (slot) {
+                case "slot1": m.setSlotPearl(code); break;
+                case "slot2": m.setSlotWindCharge(code); break;
+            }
+            return;
+        }
+
+        if (module instanceof SpearSwapMacro) {
+            SpearSwapMacro m = (SpearSwapMacro) module;
+            switch (slot) {
+                case "slot1": m.setSlotPrev(code); break;
+                case "slot2": m.setSlotSpear(code); break;
             }
         }
     }
@@ -720,12 +757,14 @@ public class ClickGUI extends JFrame implements NativeKeyListener {
             return;
         }
 
+        // GUI toggle
         if (code == guiKeybind) {
             long now = System.currentTimeMillis();
-            if (now - lastToggleTime < 250) return; // 250ms debounce
+            if (now - lastToggleTime < 250) return;
             lastToggleTime = now;
-            
-            if (isVisible()) hideGUI(); else showGUI();
+
+            if (isVisible()) hideGUI();
+            else showGUI();
         }
     }
 
