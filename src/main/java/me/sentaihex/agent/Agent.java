@@ -10,11 +10,11 @@ import java.lang.reflect.Method;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class Agent {
-    private static long lastGuiToggle = 0;
+    private static final long lastGuiToggle = 0;
 
     // Cached fields/methods for performance
     private static Object mcCached = null;
-    private static Object playerCached = null;
+    private static final Object playerCached = null;
     private static Method getAttackStrengthMethod = null;
     private static Method isAliveMethod = null;
     private static Field  inventoryField = null;
@@ -301,8 +301,22 @@ public class Agent {
                     } catch (Exception ignored) {}
                 }
             } else if (selectedSlotField != null) {
-                // If we have inventoryField and selectedSlotField, it's faster
-                // But inventory might change if player respawns? Usually not the field.
+                // Cached field - try using it
+                try {
+                    Object player = getPlayer();
+                    if (player != null) {
+                        for (String invName : new String[]{"getInventory", "method_31548"}) {
+                            try {
+                                Method m = player.getClass().getMethod(invName);
+                                m.setAccessible(true);
+                                Object inv = m.invoke(player);
+                                if (inv != null) {
+                                    return (int) selectedSlotField.get(inv);
+                                }
+                            } catch (NoSuchMethodException ignored) {}
+                        }
+                    }
+                } catch (Exception ignored) {}
             }
             
             // Fallback to the original logic if caching is tricky
