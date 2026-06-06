@@ -38,9 +38,15 @@ public class ConfigManager {
                 obj.addProperty("keybind",     m.getKeybind());
                 obj.addProperty("globalDelay", m.getGlobalDelay());
 
-                invokeGetterInt(m, "getDelay1", obj, "delay1");
-                invokeGetterInt(m, "getDelay2", obj, "delay2");
-                invokeGetterInt(m, "getDelay3", obj, "delay3");
+                if (m.getDelay1() != 0) {
+                    invokeGetterInt(m, "getDelay1", obj, "delay1");
+                }
+                if (m.getDelay2() != 0) {
+                    invokeGetterInt(m, "getDelay2", obj, "delay2");
+                }
+                if (m.getDelay3() != 0) {
+                    invokeGetterInt(m, "getDelay3", obj, "delay3");
+                }
 
                 for (String getter : SLOT_GETTERS) {
                     String jsonKey = Character.toLowerCase(getter.charAt(3)) + getter.substring(4);

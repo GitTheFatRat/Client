@@ -405,6 +405,17 @@ public class MinecraftAccess {
     // Private helpers
     // -------------------------------------------------------------------------
     private static ClassLoader findMinecraftClassLoader() {
+        // 1. Try current context class loader
+        ClassLoader contextCl = Thread.currentThread().getContextClassLoader();
+        if (isMcClassLoader(contextCl)) return contextCl;
+
+        // 2. Try all threads
+        for (Thread t : Thread.getAllStackTraces().keySet()) {
+            ClassLoader cl = t.getContextClassLoader();
+            if (isMcClassLoader(cl)) return cl;
+        }
+
+        // 3. Try Render thread specifically if not found
         for (Thread t : Thread.getAllStackTraces().keySet()) {
             if ("Render thread".equals(t.getName())) {
                 ClassLoader cl = t.getContextClassLoader();
@@ -412,6 +423,26 @@ public class MinecraftAccess {
             }
         }
         return null;
+    }
+
+    private static boolean isMcClassLoader(ClassLoader cl) {
+        if (cl == null) return false;
+        try {
+            Class.forName("net.minecraft.class_310", false, cl);
+            return true;
+        } catch (Exception e) {
+            try {
+                Class.forName("net.minecraft.client.MinecraftClient", false, cl);
+                return true;
+            } catch (Exception e2) {
+                try {
+                    Class.forName("net.minecraft.client.Minecraft", false, cl);
+                    return true;
+                } catch (Exception e3) {
+                    return false;
+                }
+            }
+        }
     }
 
     private static ClassLoader findClassLoaderFromInstrumentation(Instrumentation inst) {

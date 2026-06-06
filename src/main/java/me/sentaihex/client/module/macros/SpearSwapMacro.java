@@ -30,6 +30,19 @@ public class SpearSwapMacro extends ClientModule {
     }
 
     @Override
+    public String getDisplayName() {
+        return "Spear Swap";
+    }
+
+    @Override
+    public java.util.Map<String, String> getSlots() {
+        java.util.Map<String, String> slots = new java.util.LinkedHashMap<>();
+        slots.put("slot1", "Prev Slot");
+        slots.put("slot2", "Spear");
+        return slots;
+    }
+
+    @Override
     public void onEnable()  { System.out.println("[SentaiHex] SpearSwapMacro ON"); }
     @Override
     public void onDisable() { System.out.println("[SentaiHex] SpearSwapMacro OFF"); }

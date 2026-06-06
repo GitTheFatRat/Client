@@ -28,6 +28,18 @@ public abstract class ClientModule {
         this.keybind = defaultKey;
     }
 
+    public String getDisplayName() {
+        return name;
+    }
+
+    public java.util.Map<String, String> getSlots() {
+        return java.util.Collections.emptyMap();
+    }
+
+    public boolean hasFunctionBody() {
+        return false;
+    }
+
     public abstract void onEnable();
     public abstract void onDisable();
     public abstract void execute() throws InterruptedException;

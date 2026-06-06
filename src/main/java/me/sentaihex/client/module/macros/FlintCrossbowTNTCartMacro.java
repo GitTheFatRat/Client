@@ -32,6 +32,21 @@ public class FlintCrossbowTNTCartMacro extends ClientModule {
         super("TNT Cart (Flint + Crossbow)", "Macro", -1);
     }
 
+    @Override
+    public String getDisplayName() {
+        return "Flint + Crossbow";
+    }
+
+    @Override
+    public java.util.Map<String, String> getSlots() {
+        java.util.Map<String, String> slots = new java.util.LinkedHashMap<>();
+        slots.put("slot1", "Rail");
+        slots.put("slot2", "Cart");
+        slots.put("slot3", "Flint & Steel");
+        slots.put("slot4", "Crossbow");
+        return slots;
+    }
+
     @Override public void onEnable()  { System.out.println("[SentaiHex] FlintCrossbowTNTCartMacro ON"); }
     @Override public void onDisable() { System.out.println("[SentaiHex] FlintCrossbowTNTCartMacro OFF"); }
 

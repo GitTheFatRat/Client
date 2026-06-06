@@ -6,14 +6,27 @@ import com.github.kwhat.jnativehook.keyboard.NativeKeyEvent;
 
 public class MaceTech1 extends ClientModule {
 
-    private int slotPearl      = NativeKeyEvent.VC_V;
-    private int slotWindCharge = NativeKeyEvent.VC_ALT;
+    private int slotPearl      = NativeKeyEvent.VC_4;
+    private int slotWindCharge = NativeKeyEvent.VC_5;
 
     private int delay1 = 55;
     private int delay2 = 55;
 
     public MaceTech1() {
         super("Mace Tech 1 (Pearl+Wind)", "Macro", -1);
+    }
+
+    @Override
+    public String getDisplayName() {
+        return "Pearl + Wind";
+    }
+
+    @Override
+    public java.util.Map<String, String> getSlots() {
+        java.util.Map<String, String> slots = new java.util.LinkedHashMap<>();
+        slots.put("slot1", "Pearl");
+        slots.put("slot2", "Wind Charge");
+        return slots;
     }
 
     @Override public void onEnable()  { System.out.println("[SentaiHex] MaceTech1 ON"); }

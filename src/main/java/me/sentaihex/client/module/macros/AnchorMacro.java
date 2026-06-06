@@ -21,6 +21,20 @@ public class AnchorMacro extends ClientModule {
     }
 
     @Override
+    public String getDisplayName() {
+        return "Respawn Anchor";
+    }
+
+    @Override
+    public java.util.Map<String, String> getSlots() {
+        java.util.Map<String, String> slots = new java.util.LinkedHashMap<>();
+        slots.put("slot1", "Anchor");
+        slots.put("slot2", "Glowstone");
+        slots.put("slot3", "Totem");
+        return slots;
+    }
+
+    @Override
     public void onEnable()  { System.out.println("[SentaiHex] AnchorMacro ON - Keybind: " + getKeybindName()); }
     @Override
     public void onDisable() { System.out.println("[SentaiHex] AnchorMacro OFF"); }

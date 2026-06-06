@@ -6,9 +6,9 @@ import com.github.kwhat.jnativehook.keyboard.NativeKeyEvent;
 
 public class TNTCartMacro extends ClientModule {
 
-    private int slotRail     = NativeKeyEvent.VC_F12;
-    private int slotCart     = NativeKeyEvent.VC_F9;
-    private int slotCrossbow = NativeKeyEvent.VC_8;
+    private int slotRail     = NativeKeyEvent.VC_1;
+    private int slotCart     = NativeKeyEvent.VC_2;
+    private int slotCrossbow = NativeKeyEvent.VC_3;
 
     private int delay1 = 55;
     private int delay2 = 55;
@@ -16,6 +16,20 @@ public class TNTCartMacro extends ClientModule {
 
     public TNTCartMacro() {
         super("TNT Cart", "Macro", -1);
+    }
+
+    @Override
+    public String getDisplayName() {
+        return "TNT Cart Crossbow";
+    }
+
+    @Override
+    public java.util.Map<String, String> getSlots() {
+        java.util.Map<String, String> slots = new java.util.LinkedHashMap<>();
+        slots.put("slot1", "Rail");
+        slots.put("slot2", "Cart");
+        slots.put("slot3", "Crossbow");
+        return slots;
     }
 
     @Override public void onEnable()  { System.out.println("[SentaiHex] TNTCartMacro ON"); }

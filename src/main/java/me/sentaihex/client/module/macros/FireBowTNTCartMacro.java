@@ -33,6 +33,20 @@ public class FireBowTNTCartMacro extends ClientModule {
         super("TNT Cart (Fire Bow)", "Macro", -1);
     }
 
+    @Override
+    public String getDisplayName() {
+        return "TNT Cart Bow";
+    }
+
+    @Override
+    public java.util.Map<String, String> getSlots() {
+        java.util.Map<String, String> slots = new java.util.LinkedHashMap<>();
+        slots.put("slot1", "Fire Bow");
+        slots.put("slot2", "Rail");
+        slots.put("slot3", "Cart");
+        return slots;
+    }
+
     @Override public void onEnable()  { System.out.println("[SentaiHex] FireBowTNTCartMacro ON"); }
     @Override public void onDisable() { System.out.println("[SentaiHex] FireBowTNTCartMacro OFF"); }
 

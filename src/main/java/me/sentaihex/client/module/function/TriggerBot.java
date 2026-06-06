@@ -16,6 +16,11 @@ public class TriggerBot extends ClientModule {
         super("Trigger Bot", "Function", -1);
     }
 
+    @Override
+    public boolean hasFunctionBody() {
+        return true;
+    }
+
     public int  getWeaponSlot()         { return weaponSlot; }
     public void setWeaponSlot(int slot) {
         this.weaponSlot = slot;

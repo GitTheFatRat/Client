@@ -77,10 +77,11 @@ public final class ProcessDetector {
         if (lower.contains("net.minecraft.client.main")) return true;
         if (lower.contains("net.minecraft.client.main.main")) return true;
         if (lower.contains("cpw.mods.modlauncher.launcher")) return true;
-        if (lower.contains("modlauncher") && !lower.contains("prismlauncher")) return true;
+        if (lower.contains("modlauncher") && !lower.contains("prismlauncher") && !lower.contains("modrinth")) return true;
         if (lower.contains("launchwrapper")) return true;
         if (lower.contains("net.minecraft.launchwrapper")) return true;
         if (lower.contains("com.mojang.minecraft")) return true;
+        if (lower.contains("minecraftclient")) return true;
 
         // Third-party clients
         if (lower.contains("lunar")
@@ -91,6 +92,7 @@ public final class ProcessDetector {
         if (lower.contains("labymod")) return true;
         if (lower.contains("legacylauncher") || lower.contains("tlauncher")) return true;
         if (lower.contains("pvplegacy") || lower.contains("proxiedstart")) return true;
+        if (lower.contains("minecraft") && (lower.contains("1.20") || lower.contains("1.21") || lower.contains("1.19") || lower.contains("1.18"))) return true;
 
         // Generic fallback — must mention minecraft and not be a bare launcher
         if (lower.contains("net.minecraft")) return true;

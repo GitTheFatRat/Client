@@ -218,7 +218,7 @@ public class ClickGUI extends JFrame implements NativeKeyListener {
     }
 
     private JPanel buildHorizontalRow(java.util.List<ClientModule> modules, boolean isMacro) {
-        JPanel row = new JPanel(new GridLayout(1, modules.size(), 10, 0));
+        JPanel row = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
         row.setOpaque(false);
         row.setAlignmentX(Component.LEFT_ALIGNMENT);
         for (ClientModule m : modules)
@@ -283,17 +283,7 @@ public class ClickGUI extends JFrame implements NativeKeyListener {
     // --- MACRO CARD ---
     private JPanel buildMacroCard(ClientModule m) {
         JPanel card = buildCard(true);
-        String displayName = switch (m.getName()) {
-            case "Anchor Bomb"                    -> "Respawn Anchor";
-            case "TNT Cart"                       -> "TNT Cart Crossbow";
-            case "TNT Cart (Fire Bow)"            -> "TNT Cart Bow";
-            case "TNT Cart (Flint + Crossbow)"    -> "Flint + Crossbow";
-            case "Mace Tech 1 (Pearl+Wind)"       -> "Pearl + Wind";
-            case "Mace Tech 2 (Stun Slam)"        -> "Stun Slam";
-            case "Spear Swap"                     -> "Spear Swap";
-            default                               -> m.getName();
-        };
-        card.add(buildTopRow(m, displayName, true), BorderLayout.NORTH);
+        card.add(buildTopRow(m, m.getDisplayName(), true), BorderLayout.NORTH);
         JPanel body = new JPanel();
         body.setLayout(new BoxLayout(body, BoxLayout.Y_AXIS));
         body.setOpaque(false);
@@ -330,7 +320,7 @@ public class ClickGUI extends JFrame implements NativeKeyListener {
         body.setLayout(new BoxLayout(body, BoxLayout.Y_AXIS));
         body.setOpaque(false);
         body.setBorder(new EmptyBorder(10, 0, 0, 0));
-        if (m instanceof TriggerBot) {
+        if (m.hasFunctionBody()) {
             body.add(buildSlotRow(m, "slot1", "Weapon Slot Filter"));
             body.add(Box.createVerticalStrut(4));
         }
@@ -392,40 +382,9 @@ public class ClickGUI extends JFrame implements NativeKeyListener {
 
     // --- SLOTS ---
     private void buildSlots(ClientModule m, JPanel body) {
-        if (m instanceof AnchorMacro) {
-            body.add(buildSlotRow(m, "slot1", "Anchor"));
+        for (java.util.Map.Entry<String, String> entry : m.getSlots().entrySet()) {
+            body.add(buildSlotRow(m, entry.getKey(), entry.getValue()));
             body.add(Box.createVerticalStrut(4));
-            body.add(buildSlotRow(m, "slot2", "Glowstone"));
-            body.add(Box.createVerticalStrut(4));
-            body.add(buildSlotRow(m, "slot3", "Totem"));
-        } else if (m instanceof TNTCartMacro) {
-            body.add(buildSlotRow(m, "slot1", "Rail"));
-            body.add(Box.createVerticalStrut(4));
-            body.add(buildSlotRow(m, "slot2", "Cart"));
-            body.add(Box.createVerticalStrut(4));
-            body.add(buildSlotRow(m, "slot3", "Crossbow"));
-        } else if (m instanceof FireBowTNTCartMacro) {
-            body.add(buildSlotRow(m, "slot1", "Fire Bow"));
-            body.add(Box.createVerticalStrut(4));
-            body.add(buildSlotRow(m, "slot2", "Rail"));
-            body.add(Box.createVerticalStrut(4));
-            body.add(buildSlotRow(m, "slot3", "Cart"));
-        } else if (m instanceof FlintCrossbowTNTCartMacro) {
-            body.add(buildSlotRow(m, "slot1", "Rail"));
-            body.add(Box.createVerticalStrut(4));
-            body.add(buildSlotRow(m, "slot2", "Cart"));
-            body.add(Box.createVerticalStrut(4));
-            body.add(buildSlotRow(m, "slot3", "Flint & Steel"));
-            body.add(Box.createVerticalStrut(4));
-            body.add(buildSlotRow(m, "slot4", "Crossbow"));
-        } else if (m instanceof MaceTech1) {
-            body.add(buildSlotRow(m, "slot1", "Pearl"));
-            body.add(Box.createVerticalStrut(4));
-            body.add(buildSlotRow(m, "slot2", "Wind Charge"));
-        } else if (m instanceof SpearSwapMacro) {
-            body.add(buildSlotRow(m, "slot1", "Prev Slot"));
-            body.add(Box.createVerticalStrut(4));
-            body.add(buildSlotRow(m, "slot2", "Spear"));
         }
     }
 
@@ -762,6 +721,10 @@ public class ClickGUI extends JFrame implements NativeKeyListener {
         }
 
         if (code == guiKeybind) {
+            long now = System.currentTimeMillis();
+            if (now - lastToggleTime < 250) return; // 250ms debounce
+            lastToggleTime = now;
+            
             if (isVisible()) hideGUI(); else showGUI();
         }
     }
